@@ -18,6 +18,9 @@ dependencies:
 - text >= 2.0
 - containers >= 0.6
 
+library:
+  source-dirs: src
+
 executables:
   fancy-police:
     main:                Main.hs
@@ -26,4 +29,6 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    dependencies:
+    - fancy-police
 
