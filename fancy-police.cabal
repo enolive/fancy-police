@@ -1,0 +1,36 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           fancy-police
+version:        0.1.0.0
+homepage:       https://github.com/githubuser/fancy-police#readme
+bug-reports:    https://github.com/githubuser/fancy-police/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2024 Author name here
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    README.md
+    package.yaml
+    LICENSE.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/fancy-police
+
+executable fancy-police
+  main-is: Main.hs
+  other-modules:
+      Paths_fancy_police
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers >=0.6
+    , text >=2.0
+  default-language: Haskell2010

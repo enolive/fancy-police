@@ -1,0 +1,29 @@
+name:                fancy-police
+version:             0.1.0.0
+github:              "githubuser/fancy-police"
+license:             MIT
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2024 Author name here"
+
+extra-source-files:
+- README.md
+- package.yaml
+- LICENSE.md
+
+ghc-options: -Wall
+
+dependencies:
+- base >= 4.7 && < 5
+- text >= 2.0
+- containers >= 0.6
+
+executables:
+  fancy-police:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+
