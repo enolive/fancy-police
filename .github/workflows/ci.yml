@@ -20,4 +20,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-stack-
     - run: stack test
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()  # Run even if tests fail
+      with:
+        name: Test Results
+        path: junit.xml
+        reporter: java-junit
     - run: stack build

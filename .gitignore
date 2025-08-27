@@ -5,3 +5,4 @@ haskell-test.cabal
 *~
 
 **/*.actual
+junit.xml
