@@ -31,11 +31,11 @@ summary totalHits totalDensity =
   ]
 
 warning :: Int -> Double -> Thresholds -> [T.Text]
-warning totalHits density thresholds =
+warning totalHits density' thresholds =
   let absoluteWarning =
         ([T.pack $ printf "🚨  HIGH OFFENSE COUNT: %d violations detected!" totalHits | totalHits >= thresholds.absolute])
       densityWarning =
-        (["🚨  HIGH DENSITY: Too much Unicode glitter detected!" | density >= thresholds.density])
+        (["🚨  HIGH DENSITY: Too much Unicode glitter detected!" | density' >= thresholds.density]))
    in absoluteWarning ++ densityWarning ++ (["" | not (null absoluteWarning && null densityWarning)])
 
 details :: [Hit] -> Bool -> [T.Text]
