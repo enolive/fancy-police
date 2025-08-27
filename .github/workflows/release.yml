@@ -33,5 +33,5 @@ jobs:
       with:
         name: fancy-police-${{ runner.os }}
         path: |
-          .stack-work/install/*/bin/fancy-police
-          .stack-work/install/*/bin/fancy-police.exe
+          .stack-work/install/**/bin/fancy-police
+          .stack-work/install/**/bin/fancy-police.exe
