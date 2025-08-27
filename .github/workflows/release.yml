@@ -28,14 +28,10 @@ jobs:
 
     - run: stack build
 
-    - name: Find executable
-      id: find-exe
-      run: |
-        EXEC_PATH=$(stack path --local-install-root)/bin/fancy-police
-        echo "path=$EXEC_PATH" >> $GITHUB_OUTPUT
-
     - name: Upload executable
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: fancy-police-${{ runner.os }}
-        path: ${{ steps.find-exe.outputs.path }}
+        path: |
+          .stack-work/install/*/bin/fancy-police
+          .stack-work/install/*/bin/fancy-police.exe
