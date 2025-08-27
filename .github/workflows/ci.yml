@@ -15,6 +15,7 @@ jobs:
     - uses: haskell-actions/setup@v2
       with:
         enable-stack: true
+
     - name: Cache Stack dependencies
       uses: actions/cache@v4
       with:
@@ -24,6 +25,7 @@ jobs:
         key: ${{ runner.os }}-stack-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
         restore-keys: |
           ${{ runner.os }}-stack-
+
     - run: stack test
     - name: Publish test results
       uses: dorny/test-reporter@v2
@@ -32,4 +34,17 @@ jobs:
         name: Test Results
         path: junit.xml
         reporter: java-junit
+
     - run: stack build
+
+    - name: Find executable
+      id: find-exe
+      run: |
+        EXEC_PATH=$(stack path --local-install-root)/bin/fancy-police
+        echo "path=$EXEC_PATH" >> $GITHUB_OUTPUT
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: fancy-police-${{ runner.os }}
+        path: ${{ steps.find-exe.outputs.path }} 
