@@ -8,87 +8,134 @@ import Data.Char (ord)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 import Unicode.Emoji (takeEmojiCluster)
 
-type Offender = (Char, T.Text, T.Text) -- (char, name, asciiSuggestion)
+-- Thresholds for reporting
+data Thresholds = Thresholds
+  { absolute :: Int,
+    density :: Double
+  }
 
+thresholds :: Thresholds
+thresholds = Thresholds {absolute = 10, density = 0.03}
+
+data Offender = Offender {name :: T.Text, suggestion :: T.Text, culprit:: Char }
+
+-- Offensive unicode characters
 gremlins :: M.Map Char Offender
 gremlins =
   M.fromList $
     fmap
-      (\o@(c, _, _) -> (c, o))
-      [ ('\x2013', "EN DASH U+2013", "-"),
-        ('\x2014', "EM DASH U+2014", "-"),
-        ('\x2212', "MINUS SIGN U+2212", "-"),
-        ('\x201C', "LEFT DOUBLE QUOTATION MARK U+201C", "\""),
-        ('\x201D', "RIGHT DOUBLE QUOTATION MARK U+201D", "\""),
-        ('\x201E', "DOUBLE LOW-9 QUOTATION MARK U+201E", "\""), -- German low double quote „
-        ('\x2018', "LEFT SINGLE QUOTATION MARK U+2018", "'"),
-        ('\x2019', "RIGHT SINGLE QUOTATION MARK U+2019", "'"),
-        ('\x2026', "HORIZONTAL ELLIPSIS U+2026", "..."),
-        ('\x00A0', "NO-BREAK SPACE U+00A0", " "),
-        ('\x2009', "THIN SPACE U+2009", " "),
-        ('\x2002', "EN SPACE U+2002", " "),
-        ('\x2003', "EM SPACE U+2003", " "),
-        ('\x200B', "ZERO WIDTH SPACE U+200B", ""),
-        ('\x200D', "ZERO WIDTH JOINER U+200D", ""),
-        ('\x00D7', "MULTIPLICATION SIGN U+00D7", "*"),
-        ('\x2215', "DIVISION SLASH U+2215", "/"),
-        ('\x2044', "FRACTION SLASH U+2044", "/"),
-        ('\x2192', "RIGHTWARDS ARROW U+2192", "->"),
-        ('\x21D2', "RIGHTWARDS DOUBLE ARROW U+21D2", "=>"),
-        ('\x2022', "BULLET U+2022", "*"),
-        ('\x2122', "TRADE MARK SIGN U+2122", "(TM)"),
-        ('\x00AE', "REGISTERED SIGN U+00AE", "(R)"),
-        ('\x00B8', "CEDILLA U+00B8 (often paste artifact)", ","),
-        ('\x1E9E', "LATIN CAPITAL LETTER SHARP S U+1E9E", "SS"),
-        ('\x00B5', "MICRO SIGN U+00B5 (not Greek mu)", "u"),
-        ('\x03BC', "GREEK SMALL LETTER MU U+03BC", "mu"),
-        ('\x0391', "GREEK CAPITAL LETTER ALPHA U+0391 (looks like A)", "A"),
-        ('\x0412', "CYRILLIC CAPITAL LETTER VE U+0412 (looks like B)", "B"),
-        ('\x041E', "CYRILLIC CAPITAL LETTER O U+041E", "O"),
-        ('\x0421', "CYRILLIC CAPITAL LETTER ES U+0421", "C"),
-        ('\x0425', "CYRILLIC CAPITAL LETTER HA U+0425", "X")
+      (\(c, n, s) -> (c, Offender {name = n, suggestion = s, culprit = c} ))
+      [ ('\x2013', "EN DASH", "-"),
+        ('\x2014', "EM DASH", "-"),
+        ('\x2212', "MINUS SIGN", "-"),
+        ('\x201C', "LEFT DOUBLE QUOTATION MARK", "\""),
+        ('\x201D', "RIGHT DOUBLE QUOTATION MARK", "\""),
+        ('\x201E', "DOUBLE LOW-9 QUOTATION MARK", "\""),
+        ('\x2018', "LEFT SINGLE QUOTATION MARK", "'"),
+        ('\x2019', "RIGHT SINGLE QUOTATION MARK", "'"),
+        ('\x2026', "HORIZONTAL ELLIPSIS", "..."),
+        ('\x00A0', "NO-BREAK SPACE", " "),
+        ('\x2009', "THIN SPACE", " "),
+        ('\x2002', "EN SPACE", " "),
+        ('\x2003', "EM SPACE", " "),
+        ('\x200B', "ZERO WIDTH SPACE", ""),
+        ('\x200D', "ZERO WIDTH JOINER", ""),
+        ('\x00D7', "MULTIPLICATION SIGN", "*"),
+        ('\x2215', "DIVISION SLASH", "/"),
+        ('\x2044', "FRACTION SLASH", "/"),
+        ('\x2192', "RIGHTWARDS ARROW", "->"),
+        ('\x21D2', "RIGHTWARDS DOUBLE ARROW", "=>"),
+        ('\x2022', "BULLET", "*"),
+        ('\x2122', "TRADE MARK SIGN", "(TM)"),
+        ('\x00AE', "REGISTERED SIGN", "(R)"),
+        ('\x00B8', "CEDILLA", ","),
+        ('\x1E9E', "LATIN CAPITAL LETTER SHARP S", "SS"),
+        -- Lookalikes
+        ('\x00B5', "MICRO SIGN (not greek!)", "u"),
+        -- Greek lookalikes
+        ('\x0391', "GREEK ALPHA", "A"),
+        ('\x0392', "GREEK BETA", "B"),
+        ('\x0395', "GREEK EPSILON", "E"),
+        ('\x0396', "GREEK ZETA", "Z"),
+        ('\x0397', "GREEK ETA", "H"),
+        ('\x0399', "GREEK IOTA", "I"),
+        ('\x039A', "GREEK KAPPA", "K"),
+        ('\x039C', "GREEK MU", "M"),
+        ('\x039D', "GREEK NU", "N"),
+        ('\x039F', "GREEK OMICRON", "O"),
+        ('\x03A1', "GREEK RHO", "P"),
+        ('\x03A4', "GREEK TAU", "T"),
+        ('\x03A5', "GREEK UPSILON", "Y"),
+        ('\x03A7', "GREEK CHI", "X"),
+        ('\x03BC', "GREEK SMALL MU", "u"),
+        ('\x037E', "GREEK QUESTION MARK", ";"),
+        -- Cyrillic lookalikes
+        ('\x0410', "CYRILLIC A", "A"),
+        ('\x0412', "CYRILLIC VE", "B"),
+        ('\x0415', "CYRILLIC IE", "E"),
+        ('\x041A', "CYRILLIC KA", "K"),
+        ('\x041C', "CYRILLIC EM", "M"),
+        ('\x041D', "CYRILLIC EN", "H"),
+        ('\x041E', "CYRILLIC O", "O"),
+        ('\x0420', "CYRILLIC ER", "P"),
+        ('\x0421', "CYRILLIC ES", "C"),
+        ('\x0422', "CYRILLIC TE", "T"),
+        ('\x0425', "CYRILLIC HA", "X"),
+        ('\x0430', "CYRILLIC SMALL A", "a"),
+        ('\x043E', "CYRILLIC SMALL O", "o"),
+        ('\x0440', "CYRILLIC SMALL ER", "p"),
+        ('\x0441', "CYRILLIC SMALL ES", "c"),
+        ('\x0445', "CYRILLIC SMALL HA", "x"),
+        ('\x0455', "CYRILLIC SMALL DZE", "s")
       ]
 
 data Hit
-  = GlyphHit {lineNumber :: Int, colNo :: Int, ch :: Char, nameT :: T.Text, sug :: T.Text}
-  | EmojiHit {lineNumber :: Int, colNo :: Int, seqText :: T.Text, reason :: T.Text}
+  = GlyphHit {lineNumber :: Int, colNumber :: Int, offender:: Offender}
+  | EmojiHit {lineNumber :: Int, colNumber :: Int, seqText :: T.Text, reason :: T.Text}
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let isPedantic = "--pedantic" `elem` args
+
   input <- TIO.getContents
   let hits = scanText input
       totalHits = length hits
       totalChars = T.length input
-      density = if totalChars == 0 then 0 else fromIntegral totalHits / fromIntegral totalChars :: Double
+      currentDensity = if totalChars == 0 then 0 else fromIntegral totalHits / fromIntegral totalChars :: Double
 
-      -- thresholds (tweak to taste)
-      absThreshold = 40 -- absolute number of offenses
-      densityThreshold = 0.03 -- 3% of all characters
   if totalHits == 0
     then do
       putStrLn "FancyPolice: No Unicode gremlins found. Carry on, ASCII astronaut. \x1F9D1\x200D\x1F680\n"
       exitSuccess
     else do
-      putStrLn "FancyPolice: Halt! Typography bandits detected: ⚠️\n"
+      -- Always show the fun summary
+      putStrLn "FancyPolice: Unicode shenanigans detected! 🕵️"
+      printf "Found %d suspicious characters (%.2f%% density)\n\n" totalHits (currentDensity * 100)
 
-      -- Absolute-count alert
-      when (totalHits >= absThreshold) $ do
-        printf "SPECIAL ALERT: %d offenses detected — this is a full-on Unicode rodeo! \xF0\x9F\xA6\x80\n" totalHits
-        putStrLn ""
+      -- Show details only if pedantic OR threshold exceeded
+      let shouldShowDetails = isPedantic || totalHits >= thresholds.absolute || currentDensity >= thresholds.density
 
-      -- Density-based verdict
-      printf "Offense density: %s (%d / %d chars)\n" (showPercent density) totalHits totalChars
-      when (density >= densityThreshold) $
-        putStrLn "Density alert: Too much Unicode glitter for comfort. Consider normalizing."
+      if shouldShowDetails
+        then do
+          when (totalHits >= thresholds.absolute) $
+            printf "🚨  HIGH OFFENSE COUNT: %d violations detected!\n" totalHits
+          when (currentDensity >= thresholds.density) $
+            putStrLn "🚨  HIGH DENSITY: Too much Unicode glitter detected!"
+          when shouldShowDetails $
+            putStrLn "\nDetailed violations:"
+          mapM_ printHit hits
+        else do
+          putStrLn "💡 Tip: Use --pedantic flag to see detailed violations"
+          putStrLn "🎯 Or fix the major issues first (threshold exceeded = detailed report)"
 
       putStrLn ""
-      mapM_ printHit hits
-      printf "\nTotal offenses: %d\n" totalHits
-      exitFailure
+      if shouldShowDetails then exitFailure else exitSuccess
 
 -- Pretty-print a percentage with 2 decimals
 showPercent :: Double -> String
@@ -110,7 +157,7 @@ scanUnits ln col s =
     Just (cluster, rest) ->
       EmojiHit
         { lineNumber = ln,
-          colNo = col,
+          colNumber = col,
           seqText = cluster,
           reason = emojiWhy cluster
         }
@@ -119,13 +166,11 @@ scanUnits ln col s =
       let c = T.head s
           rest = T.tail s
        in case M.lookup c gremlins of
-            Just (_, nameTxt, suggestion) ->
+            Just o ->
               GlyphHit
                 { lineNumber = ln,
-                  colNo = col,
-                  ch = c,
-                  nameT = nameTxt,
-                  sug = suggestion
+                  colNumber = col,
+                  offender = o
                 }
                 : scanUnits ln (col + 1) rest
             Nothing ->
@@ -143,15 +188,15 @@ printHit hit@GlyphHit {} =
   printf
     "- line %d, col %d: found \"%c\" (%s) [U+%04X] -> replace with \"%s\"\n"
     hit.lineNumber
-    hit.colNo
-    hit.ch
-    hit.nameT
-    (ord hit.ch)
-    hit.sug
+    hit.colNumber
+    hit.offender.culprit 
+    hit.offender.name 
+    (ord hit.offender.culprit )
+    hit.offender.suggestion
 printHit hit@EmojiHit {} =
   printf
     "- line %d, col %d: found \"%s\" (%s)\n"
     hit.lineNumber
-    hit.colNo
+    hit.colNumber
     hit.seqText
     hit.reason

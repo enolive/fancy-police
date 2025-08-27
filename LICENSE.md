@@ -1,6 +1,6 @@
-[The MIT License (MIT)][]
+[The MIT License (MIT)][https://opensource.org/licenses/MIT]
 
-Copyright (c) 2024 Author name here
+Copyright (c) 2025 Christoph Welcz
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
