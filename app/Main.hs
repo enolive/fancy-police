@@ -4,7 +4,7 @@
 module Main where
 
 import Control.Monad (when)
-import Data.Char (ord)
+import Data.Char (chr, ord)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -22,14 +22,19 @@ data Thresholds = Thresholds
 thresholds :: Thresholds
 thresholds = Thresholds {absolute = 10, density = 0.03}
 
-data Offender = Offender {name :: T.Text, suggestion :: T.Text, culprit:: Char }
+data Offender = Offender
+  { name :: T.Text,
+    suggestion :: T.Text,
+    culprit :: Char
+  }
+  deriving (Show)
 
 -- Offensive unicode characters
 gremlins :: M.Map Char Offender
 gremlins =
   M.fromList $
     fmap
-      (\(c, n, s) -> (c, Offender {name = n, suggestion = s, culprit = c} ))
+      (\(c, n, s) -> (c, Offender {name = n, suggestion = s, culprit = c}))
       [ ('\x2013', "EN DASH", "-"),
         ('\x2014', "EM DASH", "-"),
         ('\x2212', "MINUS SIGN", "-"),
@@ -94,9 +99,34 @@ gremlins =
         ('\x0455', "CYRILLIC SMALL DZE", "s")
       ]
 
+-- offensive ranges
+data GremlinRange = GremlinRange
+  { rangeStart :: Int,
+    rangeEnd :: Int,
+    rangeName :: T.Text,
+    baseChar :: Char -- the ASCII base character ('a' or 'A')
+  }
+
+gremlinRanges :: [GremlinRange]
+gremlinRanges =
+  [ GremlinRange
+      { rangeStart = 0x1D622, -- 'a'
+        rangeEnd = 0x1D63B, -- 'z'
+        rangeName = "MATHEMATICAL SANS-SERIF ITALIC SMALL",
+        baseChar = 'a'
+      },
+    GremlinRange
+      { rangeStart = 0x1D608, -- 'A'
+        rangeEnd = 0x1D621, -- 'Z'
+        rangeName = "MATHEMATICAL SANS-SERIF ITALIC CAPITAL",
+        baseChar = 'A'
+      }
+  ]
+
 data Hit
-  = GlyphHit {lineNumber :: Int, colNumber :: Int, offender:: Offender}
+  = GlyphHit {lineNumber :: Int, colNumber :: Int, offender :: Offender}
   | EmojiHit {lineNumber :: Int, colNumber :: Int, seqText :: T.Text, reason :: T.Text}
+  deriving (Show)
 
 main :: IO ()
 main = do
@@ -174,14 +204,31 @@ scanUnits ln col s =
                 }
                 : scanUnits ln (col + 1) rest
             Nothing ->
-              scanUnits ln (col + 1) rest
+              case checkGremlinRanges c of
+                Just (rangeName, suggestion) ->
+                  GlyphHit
+                    { lineNumber = ln,
+                      colNumber = col,
+                      offender = Offender {name = rangeName, suggestion = suggestion, culprit = c}
+                    }
+                    : scanUnits ln (col + 1) rest
+                Nothing -> scanUnits ln (col + 1) rest
+
+checkGremlinRanges :: Char -> Maybe (T.Text, T.Text)
+checkGremlinRanges c =
+  let codePoint = ord c
+   in case filter (\r -> codePoint >= rangeStart r && codePoint <= rangeEnd r) gremlinRanges of
+        (range : _) ->
+          let suggestion = chr $ ord (baseChar range) + (codePoint - rangeStart range)
+           in Just (rangeName range, T.singleton suggestion)
+        [] -> Nothing
 
 -- Why/fun message for emoji clusters
 emojiWhy :: T.Text -> T.Text
 emojiWhy cluster =
   let codePoints = T.pack . printf "U+%04X" . ord <$> T.unpack cluster
       uxs = T.intercalate ", " codePoints
-   in T.pack $ printf "EMOJI sequence (%s). Suggestion: replace with ':emoji:' or ASCII, e.g., ':rocket:'." uxs
+   in T.pack $ printf "EMOJI sequence (%s) -> replace with ':emoji:' or ASCII, e.g., ':rocket:'." uxs
 
 printHit :: Hit -> IO ()
 printHit hit@GlyphHit {} =
@@ -189,9 +236,9 @@ printHit hit@GlyphHit {} =
     "- line %d, col %d: found \"%c\" (%s) [U+%04X] -> replace with \"%s\"\n"
     hit.lineNumber
     hit.colNumber
-    hit.offender.culprit 
-    hit.offender.name 
-    (ord hit.offender.culprit )
+    hit.offender.culprit
+    hit.offender.name
+    (ord hit.offender.culprit)
     hit.offender.suggestion
 printHit hit@EmojiHit {} =
   printf
@@ -200,3 +247,6 @@ printHit hit@EmojiHit {} =
     hit.colNumber
     hit.seqText
     hit.reason
+
+debugChar :: Char -> IO ()
+debugChar c = printf "Char '%c' has codepoint U+%04X (%d)\n" c (ord c) (ord c)
