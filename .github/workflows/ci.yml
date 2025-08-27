@@ -44,7 +44,7 @@ jobs:
         echo "path=$EXEC_PATH" >> $GITHUB_OUTPUT
 
     - name: Upload executable
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fancy-police-${{ runner.os }}
         path: ${{ steps.find-exe.outputs.path }} 
