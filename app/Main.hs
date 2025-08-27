@@ -195,7 +195,7 @@ scanUnits ln col s =
     Nothing ->
       let c = T.head s
           rest = T.tail s
-       in case M.lookup c gremlins of
+       in case checkGremlin c of
             Just o ->
               GlyphHit
                 { lineNumber = ln,
@@ -205,22 +205,25 @@ scanUnits ln col s =
                 : scanUnits ln (col + 1) rest
             Nothing ->
               case checkGremlinRanges c of
-                Just (rangeName, suggestion) ->
+                Just o ->
                   GlyphHit
                     { lineNumber = ln,
                       colNumber = col,
-                      offender = Offender {name = rangeName, suggestion = suggestion, culprit = c}
+                      offender = o
                     }
                     : scanUnits ln (col + 1) rest
                 Nothing -> scanUnits ln (col + 1) rest
 
-checkGremlinRanges :: Char -> Maybe (T.Text, T.Text)
+checkGremlin :: Char -> Maybe Offender
+checkGremlin c = M.lookup c gremlins
+
+checkGremlinRanges :: Char -> Maybe Offender
 checkGremlinRanges c =
   let codePoint = ord c
    in case filter (\r -> codePoint >= rangeStart r && codePoint <= rangeEnd r) gremlinRanges of
         (range : _) ->
-          let suggestion = chr $ ord (baseChar range) + (codePoint - rangeStart range)
-           in Just (rangeName range, T.singleton suggestion)
+          let suggestion = T.singleton $ chr $ ord (baseChar range) + (codePoint - rangeStart range)
+           in Just Offender {name = range.rangeName, suggestion = suggestion, culprit = c}
         [] -> Nothing
 
 -- Why/fun message for emoji clusters
