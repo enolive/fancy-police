@@ -27,24 +27,15 @@ jobs:
           ${{ runner.os }}-stack-
 
     - run: stack test
-    - name: Publish test results
-      uses: dorny/test-reporter@v2
-      if: ${{ !cancelled() }} 
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}           
       with:
-        name: Test Results
+        name: test-results
         path: junit.xml
-        reporter: java-junit
-
-    - run: stack build
-
-    - name: Find executable
-      id: find-exe
-      run: |
-        EXEC_PATH=$(stack path --local-install-root)/bin/fancy-police
-        echo "path=$EXEC_PATH" >> $GITHUB_OUTPUT
-
-    - name: Upload executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: fancy-police-${{ runner.os }}
-        path: ${{ steps.find-exe.outputs.path }} 
+  
+  # Only trigger release on main branch
+  release:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    uses: ./.github/workflows/release.yml
