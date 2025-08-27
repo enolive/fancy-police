@@ -76,6 +76,7 @@ test-suite fancy-police-test
     , fancy-police
     , filepath
     , hspec
+    , hspec-discover
     , text >=2.0
     , yaml >=0.11
   default-language: Haskell2010

@@ -35,6 +35,7 @@ tests:
     dependencies:
     - fancy-police
     - hspec
+    - hspec-discover
 
 executables:
   fancy-police:
