@@ -3,8 +3,10 @@
 
 module Main where
 
+import Control.Applicative ((<|>))
 import Control.Monad (when)
 import Data.Char (chr, ord)
+import Data.List (find)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -101,24 +103,80 @@ gremlins =
 
 -- offensive ranges
 data GremlinRange = GremlinRange
-  { rangeStart :: Int,
-    rangeEnd :: Int,
+  { rangeStart :: Char,
+    rangeEnd :: Char,
     rangeName :: T.Text,
     baseChar :: Char -- the ASCII base character ('a' or 'A')
   }
 
 gremlinRanges :: [GremlinRange]
 gremlinRanges =
+  -- NOTE: there are several other ranges, but they are not used that often...
   [ GremlinRange
-      { rangeStart = 0x1D622, -- 'a'
-        rangeEnd = 0x1D63B, -- 'z'
+      { rangeStart = '\x1D622', -- 'a'
+        rangeEnd = '\x1D63B', -- 'z'
         rangeName = "MATHEMATICAL SANS-SERIF ITALIC SMALL",
         baseChar = 'a'
       },
     GremlinRange
-      { rangeStart = 0x1D608, -- 'A'
-        rangeEnd = 0x1D621, -- 'Z'
+      { rangeStart = '\x1D608', -- 'A'
+        rangeEnd = '\x1D621', -- 'Z'
         rangeName = "MATHEMATICAL SANS-SERIF ITALIC CAPITAL",
+        baseChar = 'A'
+      },
+    GremlinRange
+      { rangeStart = '\x1D5EE', -- 'a'
+        rangeEnd = '\x1D607', -- 'z'
+        rangeName = "MATHEMATICAL SANS-SERIF BOLD SMALL",
+        baseChar = 'a'
+      },
+    GremlinRange
+      { rangeStart = '\x1D5D4', -- 'A'
+        rangeEnd = '\x1D5ED', -- 'Z'
+        rangeName = "MATHEMATICAL SANS-SERIF BOLD CAPITAL",
+        baseChar = 'A'
+      },
+    GremlinRange
+      { rangeStart = '\x1D552', -- 'a'
+        rangeEnd = '\x1D56B', -- 'z'
+        rangeName = "MATHEMATICAL DOUBLE-STRUCK SMALL",
+        baseChar = 'a'
+      },
+    -- NOTE: the double-struck capital are scattered around different codepoints and don't quite fit here...
+    GremlinRange
+      { rangeStart = '\x1D656', -- 'a'
+        rangeEnd = '\x1D66F', -- 'z'
+        rangeName = "MATHEMATICAL SANS-SERIF BOLD ITALIC SMALL",
+        baseChar = 'a'
+      },
+    GremlinRange
+      { rangeStart = '\x1D63C', -- 'A'
+        rangeEnd = '\x1D655', -- 'Z'
+        rangeName = "MATHEMATICAL SANS-SERIF BOLD ITALIC CAPITAL",
+        baseChar = 'A'
+      },
+    GremlinRange
+      { rangeStart = '\x1D41A', -- 'a'
+        rangeEnd = '\x1D433', -- 'z'
+        rangeName = "MATHEMATICAL BOLD SMALL",
+        baseChar = 'a'
+      },
+    GremlinRange
+      { rangeStart = '\x1D400', -- 'A'
+        rangeEnd = '\x1D419', -- 'Z'
+        rangeName = "MATHEMATICAL BOLD CAPITAL",
+        baseChar = 'A'
+      },
+    GremlinRange
+      { rangeStart = '\x1D68A', -- 'a'
+        rangeEnd = '\x1D6A3', -- 'z'
+        rangeName = "MATHEMATICAL MONOSPACE SMALL",
+        baseChar = 'a'
+      },
+    GremlinRange
+      { rangeStart = '\x1D670', -- 'A'
+        rangeEnd = '\x1D689', -- 'Z'
+        rangeName = "MATHEMATICAL MONOSPACE CAPITAL",
         baseChar = 'A'
       }
   ]
@@ -183,48 +241,29 @@ scanText t = concatMap scanLine (zip [1 ..] (T.lines t))
 scanUnits :: Int -> Int -> T.Text -> [Hit]
 scanUnits _ _ s | T.null s = []
 scanUnits ln col s =
-  case takeEmojiCluster s of
-    Just (cluster, rest) ->
-      EmojiHit
-        { lineNumber = ln,
-          colNumber = col,
-          seqText = cluster,
-          reason = emojiWhy cluster
-        }
-        : scanUnits ln (col + 1) rest
-    Nothing ->
-      let c = T.head s
-          rest = T.tail s
-       in case checkGremlin c of
-            Just o ->
-              GlyphHit
-                { lineNumber = ln,
-                  colNumber = col,
-                  offender = o
-                }
-                : scanUnits ln (col + 1) rest
-            Nothing ->
-              case checkGremlinRanges c of
-                Just o ->
-                  GlyphHit
-                    { lineNumber = ln,
-                      colNumber = col,
-                      offender = o
-                    }
-                    : scanUnits ln (col + 1) rest
-                Nothing -> scanUnits ln (col + 1) rest
+  case result of
+    (Just hit, remaining) -> hit : scanUnits ln (col + 1) remaining
+    (Nothing, remaining) -> scanUnits ln (col + 1) remaining
+  where
+    result
+      | Just (cluster, rest) <- takeEmojiCluster s =
+          (Just $ EmojiHit {lineNumber = ln, colNumber = col, seqText = cluster, reason = emojiWhy cluster}, rest)
+      | Just o <- checkAnyGremlin (T.head s) =
+          (Just $ GlyphHit {lineNumber = ln, colNumber = col, offender = o}, T.tail s)
+      | otherwise = (Nothing, T.tail s)
 
-checkGremlin :: Char -> Maybe Offender
-checkGremlin c = M.lookup c gremlins
+checkAnyGremlin :: Char -> Maybe Offender
+checkAnyGremlin c = checkSingleGremlin c <|> checkGremlinRanges c
+
+checkSingleGremlin :: Char -> Maybe Offender
+checkSingleGremlin c = M.lookup c gremlins
 
 checkGremlinRanges :: Char -> Maybe Offender
-checkGremlinRanges c =
+checkGremlinRanges c = do
   let codePoint = ord c
-   in case filter (\r -> codePoint >= rangeStart r && codePoint <= rangeEnd r) gremlinRanges of
-        (range : _) ->
-          let suggestion = T.singleton $ chr $ ord (baseChar range) + (codePoint - rangeStart range)
-           in Just Offender {name = range.rangeName, suggestion = suggestion, culprit = c}
-        [] -> Nothing
+  range <- find (\r -> c >= r.rangeStart && c <= r.rangeEnd) gremlinRanges
+  let derivedSuggestion = T.singleton $ chr $ ord range.baseChar + (codePoint - ord range.rangeStart)
+  return Offender {name = range.rangeName, suggestion = derivedSuggestion, culprit = c}
 
 -- Why/fun message for emoji clusters
 emojiWhy :: T.Text -> T.Text
@@ -251,5 +290,6 @@ printHit hit@EmojiHit {} =
     hit.seqText
     hit.reason
 
+-- just a helper to give me the code point of a char in a usable version I can input into may code
 debugChar :: Char -> IO ()
-debugChar c = printf "Char '%c' has codepoint U+%04X (%d)\n" c (ord c) (ord c)
+debugChar c = printf "Char '%c' has codepoint \\x%04X (%d)\n" c (ord c) (ord c)
