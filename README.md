@@ -6,7 +6,7 @@ A Haskell command-line tool that scans text for problematic Unicode characters t
 
 **FancyPolice** detects two types of "Unicode gremlins":
 
-1. **Invisible/Confusing Characters** - Zero-width spaces, non-breaking spaces, lookalike letters (Cyrillic А vs Latin A), fancy quotes, em dashes, etc.
+1. **Invisible/Confusing Characters** - Zero-width spaces, non-breaking spaces, lookalike letters (Cyrillic А vs Latin A), fancy quotes, em dashes, mathematical symbols etc.
 2. **Emoji Sequences** - Complex emoji like `👨‍👩‍👧‍👦` (family), `🧑‍🚀` (astronaut), or keycap sequences like `1️⃣`
 
 ## Key Features
@@ -35,6 +35,8 @@ https://www.haskell.org/ghcup/
 ```bash
 # Just install the tool
 stack install
+# Copy config to ~/.config/fancy-quotes.yaml
+cp config-template/fancy-quotes.yaml ~/.config/fancy-quotes.yaml
 
 # Scan stdin for Unicode gremlins
 echo "fancy "quotes"" | fancy-quotes

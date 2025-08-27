@@ -1,0 +1,6 @@
+# Copy this file to $XDG_CONFIG_HOME/fancy-police.yaml
+thresholds:
+  # defines how many hits should trigger a thorough warning
+  absolute: 10
+  # defines how many hits per character should trigger a warning
+  density: 0.03 # 3%

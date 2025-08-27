@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Main where
 
@@ -10,19 +12,43 @@ import Data.List (find)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.Environment (getArgs)
+import Data.Yaml (FromJSON, decodeFileEither)
+import GHC.Generics (Generic)
+import System.Environment (getArgs, lookupEnv)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 import Unicode.Emoji (takeEmojiCluster)
+import System.Directory (getHomeDirectory)
+import System.FilePath ((</>))
+
+newtype Config = Config
+  { thresholds :: Thresholds
+  }
+  deriving (Generic, Show, FromJSON)
+
+getConfigDir :: IO FilePath
+getConfigDir = do
+  xdgConfig <- lookupEnv "XDG_CONFIG_HOME"
+  case xdgConfig of
+    Just dir -> return dir
+    Nothing -> do
+      homeDir <- getHomeDirectory
+      return $ homeDir </> ".config"
+
+loadConfig :: FilePath -> IO Config
+loadConfig path = do
+  result <- decodeFileEither path
+  case result of
+    Left err -> do
+      error $ "Error loading config: " ++ show err
+    Right cfg -> return cfg
 
 -- Thresholds for reporting
 data Thresholds = Thresholds
   { absolute :: Int,
     density :: Double
   }
-
-thresholds :: Thresholds
-thresholds = Thresholds {absolute = 10, density = 0.03}
+  deriving (Generic, Show, FromJSON)
 
 data Offender = Offender
   { name :: T.Text,
@@ -142,7 +168,7 @@ gremlinRanges =
         rangeName = "MATHEMATICAL DOUBLE-STRUCK SMALL",
         baseChar = 'a'
       },
-    -- NOTE: the double-struck capital are scattered around different codepoints and don't quite fit here...
+    -- NOTE: the double-struck capital characters are scattered around different codepoints and don't quite fit here...
     GremlinRange
       { rangeStart = '\x1D656', -- 'a'
         rangeEnd = '\x1D66F', -- 'z'
@@ -190,6 +216,8 @@ main :: IO ()
 main = do
   args <- getArgs
   let isPedantic = "--pedantic" `elem` args
+  configDir <- getConfigDir
+  config <- loadConfig $ configDir </> "fancy-police.yaml"
 
   input <- TIO.getContents
   let hits = scanText input
@@ -207,13 +235,13 @@ main = do
       printf "Found %d suspicious characters (%.2f%% density)\n\n" totalHits (currentDensity * 100)
 
       -- Show details only if pedantic OR threshold exceeded
-      let shouldShowDetails = isPedantic || totalHits >= thresholds.absolute || currentDensity >= thresholds.density
+      let shouldShowDetails = isPedantic || totalHits >= config.thresholds.absolute || currentDensity >= config.thresholds.density
 
       if shouldShowDetails
         then do
-          when (totalHits >= thresholds.absolute) $
+          when (totalHits >= config.thresholds.absolute) $
             printf "🚨  HIGH OFFENSE COUNT: %d violations detected!\n" totalHits
-          when (currentDensity >= thresholds.density) $
+          when (currentDensity >= config.thresholds.density) $
             putStrLn "🚨  HIGH DENSITY: Too much Unicode glitter detected!"
           when shouldShowDetails $
             putStrLn "\nDetailed violations:"
