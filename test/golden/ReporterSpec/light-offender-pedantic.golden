@@ -1,0 +1,4 @@
+FancyPolice: Unicode shenanigans detected! 🕵️
+Found 1 suspicious characters (2.50% density)
+Detailed violations:
+- line 1, col 3: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"

@@ -3,3 +3,5 @@
 out/
 haskell-test.cabal
 *~
+
+**/*.actual

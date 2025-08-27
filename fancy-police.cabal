@@ -24,6 +24,9 @@ source-repository head
 
 library
   exposed-modules:
+      Reporter
+      Scanner
+      Types
       Unicode.Emoji
   other-modules:
       Paths_fancy_police
@@ -52,6 +55,27 @@ executable fancy-police
     , directory
     , fancy-police
     , filepath
+    , text >=2.0
+    , yaml >=0.11
+  default-language: Haskell2010
+
+test-suite fancy-police-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      ReporterSpec
+      ScannerSpec
+      Paths_fancy_police
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers >=0.6
+    , directory
+    , fancy-police
+    , filepath
+    , hspec
     , text >=2.0
     , yaml >=0.11
   default-language: Haskell2010

@@ -1,0 +1,8 @@
+FancyPolice: Unicode shenanigans detected! 🕵️
+Found 3 suspicious characters (3.00% density)
+🚨  HIGH OFFENSE COUNT: 3 violations detected!
+
+Detailed violations:
+- line 1, col 3: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"
+- line 1, col 3: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"
+- line 1, col 3: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"

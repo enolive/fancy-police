@@ -1,0 +1,27 @@
+FancyPolice: Unicode shenanigans detected! 🕵️
+Found 21 suspicious characters (52.50% density)
+🚨  HIGH OFFENSE COUNT: 21 violations detected!
+🚨  HIGH DENSITY: Too much Unicode glitter detected!
+
+Detailed violations:
+- line 1, col 1: found "𝗩" (MATHEMATICAL SANS-SERIF BOLD CAPITAL) [U+1D5E9] -> replace with "V"
+- line 1, col 2: found "𝗲" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F2] -> replace with "e"
+- line 1, col 3: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"
+- line 1, col 4: found "𝘁" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D601] -> replace with "t"
+- line 7, col 1: found "🔹" (EMOJI sequence (U+1F539) -> replace with ':emoji:' or ASCII, e.g., ':rocket:'.)
+- line 7, col 3: found "𝗭" (MATHEMATICAL SANS-SERIF BOLD CAPITAL) [U+1D5ED] -> replace with "Z"
+- line 7, col 4: found "𝗲" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F2] -> replace with "e"
+- line 7, col 5: found "𝗻" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FB] -> replace with "n"
+- line 7, col 6: found "𝘁" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D601] -> replace with "t"
+- line 7, col 7: found "𝗿" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5FF] -> replace with "r"
+- line 7, col 8: found "𝗮" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5EE] -> replace with "a"
+- line 7, col 9: found "𝗹" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F9] -> replace with "l"
+- line 7, col 62: found "–" (EN DASH) [U+2013] -> replace with "-"
+- line 8, col 1: found "🔹" (EMOJI sequence (U+1F539) -> replace with ':emoji:' or ASCII, e.g., ':rocket:'.)
+- line 8, col 3: found "𝗦" (MATHEMATICAL SANS-SERIF BOLD CAPITAL) [U+1D5E6] -> replace with "S"
+- line 8, col 4: found "𝗸" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F8] -> replace with "k"
+- line 8, col 5: found "𝗮" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5EE] -> replace with "a"
+- line 8, col 6: found "𝗹" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F9] -> replace with "l"
+- line 8, col 23: found "𝗳" (MATHEMATICAL SANS-SERIF BOLD SMALL) [U+1D5F3] -> replace with "f"
+- line 8, col 70: found "–" (EN DASH) [U+2013] -> replace with "-"
+- line 9, col 1: found "🔹" (EMOJI sequence (U+1F539) -> replace with ':emoji:' or ASCII, e.g., ':rocket:'.)
