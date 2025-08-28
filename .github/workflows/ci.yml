@@ -21,11 +21,11 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.stack
+          ${{ steps.setup-haskell.outputs.stack-root }}
           .stack-work
-        key: ${{ runner.os }}-stack-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
+        key: ${{ runner.os }}-stack-test-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
         restore-keys: |
-          ${{ runner.os }}-stack-
+          ${{ runner.os }}-stack-test
 
     - run: stack test
 
