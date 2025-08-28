@@ -16,6 +16,13 @@ jobs:
       id: setup-haskell
       with:
         enable-stack: true
+    
+    - name: Cache GHC
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ steps.setup-haskell.outputs.ghc-path }}
+        key: ${{ runner.os }}-ghc-${{ steps.setup-haskell.outputs.ghc-version }}
 
     - name: Cache Stack dependencies
       uses: actions/cache@v4
@@ -26,7 +33,7 @@ jobs:
         key: ${{ runner.os }}-stack-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
         restore-keys: |
           ${{ runner.os }}-stack-
-
+    
     - name: Debug Stack Root Location
       run: stack path --stack-root
 
