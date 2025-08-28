@@ -35,8 +35,3 @@ jobs:
         name: test-results
         path: junit.xml
   
-  # Only trigger release on main branch
-  release:
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    uses: ./.github/workflows/release.yml
