@@ -44,3 +44,19 @@ echo "fancy "quotes"" | fancy-quotes
 # Show all violations regardless of severity  
 cat myfile.txt | fancy-quotes --pedantic
 ```
+
+## Considerations on Windows
+
+This tool can also run on windows, but requires the Unicode Codepage in the Terminal.
+
+By running `chcp.com 65001` in the terminal, the codepage will be changed to UTF-8.
+
+You can automate this for instance in **git-bash** by adding following line to your `.bashrc` file:
+
+```bash
+/c/Windows/System32/chcp.com 65001 > /dev/null 2>&1
+```
+
+By running `chcp.com` without any parameters, you can see your current set codepage.
+
+See also https://stackoverflow.com/a/50476493 for this answer.
