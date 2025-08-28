@@ -35,10 +35,18 @@ jobs:
     
     - run: stack build
 
+    - name: Prepare release artifacts  
+      shell: bash
+      run: |
+        mkdir -p release
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          find .stack-work/install -name "fancy-police.exe" -exec cp {} release/fancy-police-Windows.exe \;
+        else
+          find .stack-work/install -name "fancy-police" -exec cp {} release/fancy-police-${{ runner.os }} \;
+        fi
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: |
-          .stack-work/install/**/bin/fancy-police
-          .stack-work/install/**/bin/fancy-police.exe
+        files: release/*
         generate_release_notes: true
