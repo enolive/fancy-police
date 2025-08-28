@@ -17,13 +17,6 @@ jobs:
       with:
         enable-stack: true
     
-    - name: Cache GHC
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ steps.setup-haskell.outputs.ghc-path }}
-        key: ${{ runner.os }}-ghc-${{ steps.setup-haskell.outputs.ghc-version }}
-
     - name: Cache Stack dependencies
       uses: actions/cache@v4
       with:
