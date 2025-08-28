@@ -13,6 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: haskell-actions/setup@v2
+      id: setup-haskell
       with:
         enable-stack: true
 
@@ -20,7 +21,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.stack
+          ${{ steps.setup-haskell.outputs.stack-root }}
           .stack-work
         key: ${{ runner.os }}-stack-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
         restore-keys: |
