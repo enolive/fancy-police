@@ -21,7 +21,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          ${{ steps.setup-haskell.outputs.stack-root }}
+          ~/.stack
           .stack-work
         key: ${{ runner.os }}-stack-${{ hashFiles('**/stack.yaml.lock', '**/package.yaml', '**/*.cabal') }}
         restore-keys: |
