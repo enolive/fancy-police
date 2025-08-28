@@ -9,8 +9,6 @@ import Config (Config (..), getConfigDir, loadConfig)
 import Data.Char (ord)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Data.Yaml (FromJSON)
-import GHC.Generics (Generic)
 import Reporter (formatReport)
 import Scanner (scanText)
 import System.Environment (getArgs)
@@ -18,11 +16,6 @@ import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 import Text.Printf (printf)
 import Types
-
-newtype Config = Config
-  { thresholds :: Thresholds
-  }
-  deriving (Generic, Show, FromJSON)
 
 main :: IO ()
 main = do
