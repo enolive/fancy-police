@@ -25,5 +25,5 @@ data Thresholds = Thresholds
   }
   deriving (Generic, Show, FromJSON)
 
-data ReportMode = Brief | Normal | Pedantic
-  deriving (Eq, Show)
+data ReportMode = Brief | Pedantic
+  deriving (Eq, Show, Bounded, Enum)

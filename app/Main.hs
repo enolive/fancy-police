@@ -34,6 +34,5 @@ debugChar c = printf "Char '%c' has codepoint \\x%04X (%d)\n" c (ord c) (ord c)
 
 parseReportMode :: [String] -> ReportMode
 parseReportMode args
-  | "--brief" `elem` args = Brief
   | "--pedantic" `elem` args = Pedantic
-  | otherwise = Normal
+  | otherwise = Brief

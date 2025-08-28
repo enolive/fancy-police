@@ -75,7 +75,8 @@ test-suite fancy-police-test
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , containers >=0.6
     , directory
     , fancy-police

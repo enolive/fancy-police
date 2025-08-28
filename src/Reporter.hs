@@ -17,15 +17,11 @@ formatReport hits totalChars mode thresholds =
   let totalHits = length hits
       countedChars = countHitChars hits
       calculatedDensity = calculateDensity countedChars totalChars
-      shouldShowDetails = case mode of
-        Brief -> False  -- Never show details in brief mode
-        Normal -> totalHits >= thresholds.absolute || calculatedDensity >= thresholds.density
-        Pedantic -> True  -- Always show details in pedantic mode
       report =
         T.unlines $
           summary totalHits calculatedDensity
             ++ warning totalHits calculatedDensity thresholds
-            ++ details hits shouldShowDetails
+            ++ details hits mode
    in (report, True)
 
 summary :: Int -> Double -> [T.Text]
@@ -42,9 +38,9 @@ warning totalHits density' thresholds =
         (["🚨  HIGH DENSITY: Too much Unicode glitter detected!" | density' >= thresholds.density])
    in absoluteWarning ++ densityWarning ++ (["" | not (null absoluteWarning && null densityWarning)])
 
-details :: [Hit] -> Bool -> [T.Text]
-details hits True = "Detailed violations:" : map formatHit hits
-details _ False =
+details :: [Hit] -> ReportMode -> [T.Text]
+details hits Pedantic = "Detailed violations:" : map formatHit hits
+details _ Brief =
   [ "💡 Tip: Use --pedantic flag to see detailed violations",
     "🎯 Or fix the major issues first (threshold exceeded = detailed report)"
   ]
