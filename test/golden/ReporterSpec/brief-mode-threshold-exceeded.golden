@@ -1,0 +1,7 @@
+FancyPolice: Unicode shenanigans detected! 🕵️
+Found 3 suspicious characters (3.00% density)
+🚨  HIGH OFFENSE COUNT: 3 violations detected!
+🚨  HIGH DENSITY: Too much Unicode glitter detected!
+
+💡 Tip: Use --pedantic flag to see detailed violations
+🎯 Or fix the major issues first (threshold exceeded = detailed report)

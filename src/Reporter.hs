@@ -10,14 +10,17 @@ import Types
 
 type ShouldFail = Bool
 
-formatReport :: [Hit] -> Int -> Bool -> Thresholds -> (T.Text, ShouldFail)
+formatReport :: [Hit] -> Int -> ReportMode -> Thresholds -> (T.Text, ShouldFail)
 formatReport [] _ _ _ =
   ("FancyPolice: No Unicode gremlins found. Carry on, ASCII astronaut. \x1F9D1\x200D\x1F680\n", False)
-formatReport hits totalChars isPedantic thresholds =
+formatReport hits totalChars mode thresholds =
   let totalHits = length hits
       countedChars = countHitChars hits
       calculatedDensity = calculateDensity countedChars totalChars
-      shouldShowDetails = isPedantic || totalHits >= thresholds.absolute || calculatedDensity >= thresholds.density
+      shouldShowDetails = case mode of
+        Brief -> False  -- Never show details in brief mode
+        Normal -> totalHits >= thresholds.absolute || calculatedDensity >= thresholds.density
+        Pedantic -> True  -- Always show details in pedantic mode
       report =
         T.unlines $
           summary totalHits calculatedDensity

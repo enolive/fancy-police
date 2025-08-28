@@ -24,3 +24,6 @@ data Thresholds = Thresholds
     density :: Double
   }
   deriving (Generic, Show, FromJSON)
+
+data ReportMode = Brief | Normal | Pedantic
+  deriving (Eq, Show)
