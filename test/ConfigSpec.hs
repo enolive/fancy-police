@@ -7,7 +7,6 @@ module ConfigSpec where
 
 import Config
 import Control.Exception (bracket_)
-import Data.List (isSuffixOf)
 import System.Environment (lookupEnv, setEnv, unsetEnv)
 import System.FilePath ((</>))
 import System.IO.Temp (withSystemTempDirectory)
@@ -23,9 +22,9 @@ spec = describe "Configuration handling" $ do
       result `shouldBe` "/custom/config"
 
     it "falls back to ~/.config when XDG_CONFIG_HOME is unset" $ do
-      result <- withoutEnvVar "XDG_CONFIG_HOME" getConfigDir
+      result <- withoutEnvVar "XDG_CONFIG_HOME" $ withEnvVar "HOME" "/home/user" getConfigDir
 
-      result `shouldSatisfy` (\path -> ".config" `isSuffixOf` path)
+      result `shouldBe` "/home/user/.config"
 
   describe "Configuration file loading" $ do
     it "parses valid YAML configuration" $ do

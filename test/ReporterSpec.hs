@@ -94,7 +94,7 @@ spec = do
 
       shouldFail `shouldBe` True
       goldenTest "ReporterSpec/absolute-threshold-fine" report
-    
+
     it "shows details when density is exceeded" $ do
       let hits =
             [ GlyphHit {lineNumber = 1, colNumber = 3, offender = Offender {name = "MATHEMATICAL SANS-SERIF BOLD SMALL", suggestion = "r", culprit = '\120319'}},
@@ -105,7 +105,7 @@ spec = do
 
       shouldFail `shouldBe` True
       goldenTest "ReporterSpec/density-threshold-exceeded" report
-    
+
     it "hides details when density is still fine" $ do
       let hits =
             [ GlyphHit {lineNumber = 1, colNumber = 3, offender = Offender {name = "MATHEMATICAL SANS-SERIF BOLD SMALL", suggestion = "r", culprit = '\120319'}},
@@ -116,6 +116,29 @@ spec = do
 
       shouldFail `shouldBe` True
       goldenTest "ReporterSpec/density-threshold-fine" report
+
+    it "calculates 100% density for one-character emoji in single character text" $ do
+      let emojiHit = EmojiHit 1 1 "🚀"
+          hits = [emojiHit]
+          totalChars = 1
+          thresholds = Thresholds 999 0.5
+          isPedantic = True
+
+      let (report, _) = formatReport hits totalChars isPedantic thresholds
+
+      report `shouldSatisfy` \r -> "100.00% density" `T.isInfixOf` r
+
+    it "calculates 100% density for complex emoji with multiple code units" $ do
+      let complexEmoji = "\x1F9D1\x1F3FF\x200D\x1F680" -- 🧑🏿‍🚀 (person + dark skin + ZWJ + rocket)
+          emojiHit = EmojiHit 1 1 complexEmoji
+          hits = [emojiHit]
+          totalChars = 4 -- The emoji consists of 4 code units
+          thresholds = Thresholds 999 0.5
+          isPedantic = True
+
+      let (report, _) = formatReport hits totalChars isPedantic thresholds
+
+      report `shouldSatisfy` \r -> "100.00% density" `T.isInfixOf` r
 
 goldenTest :: String -> T.Text -> IO ()
 goldenTest testName actual = do

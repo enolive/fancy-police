@@ -17,6 +17,7 @@ import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 import Types
+import System.FilePath ((</>))
 
 newtype Config = Config
   { thresholds :: Thresholds
@@ -28,7 +29,7 @@ main = do
   args <- getArgs
   let isPedantic = "--pedantic" `elem` args
   configDir <- getConfigDir
-  config <- loadConfig $ configDir ++ "fancy-police.yaml"
+  config <- loadConfig $ configDir </> "fancy-police.yaml"
   input <- TIO.getContents
   let hits = scanText input
       (report, shouldFail) = formatReport hits (T.length input) isPedantic config.thresholds

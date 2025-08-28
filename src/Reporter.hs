@@ -15,12 +15,13 @@ formatReport [] _ _ _ =
   ("FancyPolice: No Unicode gremlins found. Carry on, ASCII astronaut. \x1F9D1\x200D\x1F680\n", False)
 formatReport hits totalChars isPedantic thresholds =
   let totalHits = length hits
-      totalDensity = if totalChars == 0 then 0 else fromIntegral totalHits / fromIntegral totalChars
-      shouldShowDetails = isPedantic || totalHits >= thresholds.absolute || totalDensity >= thresholds.density
+      countedChars = countHitChars hits
+      calculatedDensity = calculateDensity countedChars totalChars
+      shouldShowDetails = isPedantic || totalHits >= thresholds.absolute || calculatedDensity >= thresholds.density
       report =
         T.unlines $
-          summary totalHits totalDensity
-            ++ warning totalHits totalDensity thresholds
+          summary totalHits calculatedDensity
+            ++ warning totalHits calculatedDensity thresholds
             ++ details hits shouldShowDetails
    in (report, True)
 
@@ -71,3 +72,13 @@ emojiWhy cluster =
   let codePoints = T.pack . printf "U+%04X" . ord <$> T.unpack cluster
       uxs = T.intercalate ", " codePoints
    in T.pack $ printf "EMOJI sequence (%s) -> replace with ':emoji:' or ASCII, e.g., ':rocket:'." uxs
+
+countHitChars :: [Hit] -> Int
+countHitChars = sum . map countCharsForHit
+  where
+    countCharsForHit (GlyphHit {}) = 1
+    countCharsForHit (EmojiHit _ _ emojiText) = T.length emojiText
+
+calculateDensity :: Int -> Int -> Double
+calculateDensity _ 0 = 0
+calculateDensity unicodeChars totalChars = fromIntegral unicodeChars / fromIntegral totalChars

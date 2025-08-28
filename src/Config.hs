@@ -15,6 +15,7 @@ import GHC.Generics (Generic)
 import System.Directory (getHomeDirectory)
 import System.Environment (lookupEnv)
 import Types
+import System.FilePath ((</>))
 
 -- | Configuration data structure
 newtype Config = Config
@@ -35,7 +36,7 @@ getConfigDir = do
     Just dir -> return dir
     Nothing -> do
       homeDir <- getHomeDirectory
-      return $ homeDir ++ "/.config"
+      return $ homeDir </> ".config"
 
 -- | Load configuration from a YAML file
 loadConfig :: FilePath -> IO Config
