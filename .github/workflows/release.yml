@@ -27,6 +27,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-stack-
 
+    - name: Debug Stack Root Location
+      run: stack path --stack-root
+
     - run: stack build
 
     - name: Upload executable
