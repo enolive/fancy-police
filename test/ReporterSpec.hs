@@ -100,7 +100,7 @@ spec = do
       shouldFail `shouldBe` True
       goldenTest "ReporterSpec/light-offender" report
 
-    it "prints report for a light offender in pedantic mode" $ property $ do
+    it "prints report for a light offender in pedantic mode" $ do
       let hits = [sampleGlyphHit]
           totalChars = 40
           mode = Pedantic
