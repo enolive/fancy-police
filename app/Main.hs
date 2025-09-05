@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -24,7 +22,7 @@ main = do
   config <- loadConfig $ configDir </> "fancy-police.yaml"
   input <- TIO.getContents
   let hits = scanText input
-      (report, shouldFail) = formatReport hits (T.length input) mode config.thresholds
+  let (report, shouldFail) = formatReport hits (T.length input) mode config.thresholds
   TIO.putStr report
   if shouldFail then exitFailure else exitSuccess
 
