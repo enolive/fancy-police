@@ -179,9 +179,11 @@ scanUnits :: Int -> Int -> T.Text -> [Hit]
 scanUnits _ _ s | T.null s = []
 scanUnits ln col s =
   case result of
-    (Just hit, remaining) -> hit : scanUnits ln (col + 1) remaining
+    (Just hit, remaining) -> hit : scanUnits ln (col + nextCol hit) remaining
     (Nothing, remaining) -> scanUnits ln (col + 1) remaining
   where
+    nextCol (GlyphHit {}) = 1
+    nextCol (EmojiHit {seqText = text}) = T.length text
     result
       | Just (cluster, rest) <- takeEmojiCluster s =
           (Just $ EmojiHit {lineNumber = ln, colNumber = col, seqText = cluster}, rest)

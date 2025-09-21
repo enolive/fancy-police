@@ -17,6 +17,7 @@ takeEmojiCluster s
   | T.null s = Nothing
   | Just t <- takeKeycapSequence s = Just t
   | Just t <- takeRegionalFlag s = Just t
+  | Just t <- takeSubdivisionFlags s = Just t
   | Just t <- takeRegularEmoji s = Just t
   | otherwise = Nothing
 
@@ -27,8 +28,27 @@ takeRegularEmoji s = do
   guard (isEmojiScalar c)
   let (seq1, r1) = takeOptVS16 rest
       (seq2, r2) = takeOptSkin seq1 r1
-      (joined, rJ) = takeZWJChain (T.cons c seq2) r2
+      baseEmoji = T.cons c seq2
+      (joined, rJ) = takeZWJChain baseEmoji r2  
   return (joined, rJ)
+
+-- Takes tag sequences like subdivision flags (Wales, Scotland, etc.)
+takeSubdivisionFlags :: T.Text -> Maybe (T.Text, T.Text)
+takeSubdivisionFlags s = do
+  (base, rest) <- T.uncons s
+  guard (ord base == 0x1F3F4) -- black flag
+  let (tagSeq, remainder) = takeTagChars T.empty rest
+  guard (not $ T.null tagSeq) -- must have at least one tag
+  return (T.cons base tagSeq, remainder)
+  where
+    takeTagChars acc input =
+      case T.uncons input of
+        Just (c, r) 
+          | let n = ord c,
+            n == 0xE007F -> (acc `T.snoc` c, r) -- cancel tag - end sequence
+          | let n = ord c,
+            inRange 0xE0020 0xE007E n -> takeTagChars (acc `T.snoc` c) r -- continue collecting tags
+        _ -> (acc, input) -- no more valid tags
 
 -- takes an emoji that starts with a number such as 1️⃣ or *️⃣
 takeKeycapSequence :: T.Text -> Maybe (T.Text, T.Text)

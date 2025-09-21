@@ -35,10 +35,28 @@ spec = describe "Scanner for Unicode input" $ do
     result
       `shouldBe` [ EmojiHit {lineNumber = 1, colNumber = 10, seqText = "\128512"},
                    EmojiHit {lineNumber = 1, colNumber = 17, seqText = "\127462\127476"},
-                   EmojiHit {lineNumber = 1, colNumber = 24, seqText = "\128110"},
+                   EmojiHit {lineNumber = 1, colNumber = 25, seqText = "\128110"},
                    EmojiHit {lineNumber = 2, colNumber = 1, seqText = "0\65039\8419"},
-                   EmojiHit {lineNumber = 2, colNumber = 2, seqText = "\x1F6A8"}
+                   EmojiHit {lineNumber = 2, colNumber = 4, seqText = "\x1F6A8"}
                  ]
+
+  it "finds special flag emojis" $ do
+    -- pride flag followed by trans flag
+    let input = "\x1f3f3\xfe0f\x200d\x1f308 \x1f3f3\xfe0f\x200d\x26a7\xfe0f"
+    let result = scanText input
+    result
+      `shouldBe` [ EmojiHit {lineNumber = 1, colNumber = 1, seqText = "\x1f3f3\xfe0f\x200d\x1f308"}
+                 , EmojiHit {lineNumber = 1, colNumber = 6, seqText = "\x1f3f3\xfe0f\x200d\x26a7\xfe0f"}
+                 ]
+
+  it "finds subdivision flag emojis" $ do
+    -- wales followed by texas
+    let input = "\x1f3f4\xe0067\xe0062\xe0077\xe006c\xe0073\xe007f \x1f3f4\xe0075\xe0073\xe0074\xe0078\xe007f"
+    let result = scanText input
+    result
+      `shouldBe` [ EmojiHit {lineNumber = 1, colNumber = 1, seqText = "\x1f3f4\xe0067\xe0062\xe0077\xe006c\xe0073\xe007f"}
+                , EmojiHit {lineNumber = 1, colNumber = 9, seqText = "\x1f3f4\xe0075\xe0073\xe0074\xe0078\xe007f"}
+                ]
 
   it "finds some gremlins" $ do
     let input = "this is a fact – 𝙄 𝙨𝙬𝙚𝙖𝙧 – that I’ve been there"
