@@ -42,7 +42,7 @@ details :: [Hit] -> ReportMode -> [T.Text]
 details hits Pedantic = "Detailed violations:" : map formatHit hits
 details _ Brief =
   [ "💡 Tip: Use --pedantic flag to see detailed violations",
-    "🎯 Or fix the major issues first (threshold exceeded = detailed report)"
+    "🎯 Or fix the major issues first"
   ]
 
 formatHit :: Hit -> T.Text

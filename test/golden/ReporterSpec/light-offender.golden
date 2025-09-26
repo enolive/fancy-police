@@ -1,4 +1,4 @@
 FancyPolice: Unicode shenanigans detected! 🕵️
 Found 1 suspicious characters (2.50% density)
 💡 Tip: Use --pedantic flag to see detailed violations
-🎯 Or fix the major issues first (threshold exceeded = detailed report)
+🎯 Or fix the major issues first

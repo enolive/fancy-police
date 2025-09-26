@@ -3,4 +3,4 @@ Found 2 suspicious characters (50.00% density)
 🚨  HIGH DENSITY: Too much Unicode glitter detected!
 
 💡 Tip: Use --pedantic flag to see detailed violations
-🎯 Or fix the major issues first (threshold exceeded = detailed report)
+🎯 Or fix the major issues first
